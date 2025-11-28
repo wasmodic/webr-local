@@ -1,0 +1,15 @@
+Package: wasmodicR
+Type: Package
+Title: Wasmodic Example Package
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Andrew", "Lonsdale",
+      email = "andrew.lonsdale@petermac.org",
+      role = c("aut", "cre")
+    )
+  )
+Description: This simple package is intended to demonstrate WASM compilation and access via WebR. 
+License: MIT
+Encoding: UTF-8
+LazyData: true
