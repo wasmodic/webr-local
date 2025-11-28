@@ -30,6 +30,8 @@ jobs:
          latest: true
          fileName: "*"
          out-file-path: "."
+      - name: ls check
+        run:  ls
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
