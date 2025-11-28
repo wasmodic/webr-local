@@ -16,3 +16,25 @@
 wasmodic <- function() {
   print("WASM rules!")
 }
+
+
+clean_seq <- function(x) {
+  lines <- unlist(strsplit(x, "\\n"))
+  seq_lines <- lines[!grepl("^>", lines)]
+  seq <- paste(seq_lines, collapse = "")
+  seq <- toupper(gsub("[^ACGT]", "", seq))
+  seq
+}
+
+gc_content <- function(seq) {
+  g <- stringr::str_count(seq, "G")
+  c_ <- stringr::str_count(seq, "C")
+  gc <- g + c_
+  pct <- if (nchar(seq) > 0) (gc / nchar(seq)) * 100 else 0
+  list(gc = gc, pct = pct, len = nchar(seq))
+}
+
+rev_comp <- function(seq) {
+  map <- c(A="T", C="G", G="C", T="A")
+  paste0(rev(map[strsplit(seq, "")[[1]]]), collapse = "")
+}

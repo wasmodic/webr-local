@@ -42,8 +42,17 @@
   <h1>webR Bioinformatics Demo</h1>
   <p>
     This page runs R entirely in your browser using webR. It computes GC content
-    and the reverse complement of a DNA sequence.
-  </p>
+    and the reverse complement of a DNA sequence. These functiosn come from a local R package (wasmodicR)
+    that is hosted on this repo's GitHub pages, and could be called from any WebR instance.
+    </p>
+
+    <pre>
+      library(webr)
+      webr::mount(mountpoint = "/wasmodicR", source = "https://wasmodic.github.io/webr-local/library.data");
+      .libPaths(c(.libPaths(), "/wasmodicR"));
+      library(wasmodicR)
+      wasmodicR::wasmodic()
+      </pre>
 
   <label for="seq"><strong>DNA sequence (supports FASTA):</strong></label>
   <textarea id="seq" rows="6">
@@ -88,30 +97,7 @@ ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG
       statusEl.textContent = "webR ready.";
       runBtn.disabled = false;
 
-      // Preload R functions once
-      await webR.evalR(`
-clean_seq <- function(x) {
-  lines <- unlist(strsplit(x, "\\n"))
-  seq_lines <- lines[!grepl("^>", lines)]
-  seq <- paste(seq_lines, collapse = "")
-  seq <- toupper(gsub("[^ACGT]", "", seq))
-  seq
-}
-
-gc_content <- function(seq) {
-  g <- stringr::str_count(seq, "G")
-  c_ <- stringr::str_count(seq, "C")
-  gc <- g + c_
-  pct <- if (nchar(seq) > 0) (gc / nchar(seq)) * 100 else 0
-  list(gc = gc, pct = pct, len = nchar(seq))
-}
-
-rev_comp <- function(seq) {
-  map <- c(A="T", C="G", G="C", T="A")
-  paste0(rev(map[strsplit(seq, "")[[1]]]), collapse = "")
-}
-      `, { captureStreams: false });
-    }
+     }
 
     init();
 
@@ -127,9 +113,24 @@ rev_comp <- function(seq) {
       // Perform analysis in R
       const result = await webR.evalR(`
 library(wasmodicR)
+library(stringr)
+
+seq_clean <- wasmodicR::clean_seq(rawseq)
+gc <- wasmodicR::gc_content(seq_clean)
+revseq <- wasmodicR::rev_comp(seq_clean)
+
+paste(
+  sprintf("Cleaned length: %d", gc$len),
+  sprintf("GC bases: %d", gc$gc),
+  sprintf("GC content: %.2f%%", gc$pct),
+  "",
+  "Reverse complement:",
+  revseq,
+  sep = "\\n"
+)
 
 wasmodicR::wasmodic()
-)
+
 `, { captureStreams: true });
 
       const text = await result.toJs();
