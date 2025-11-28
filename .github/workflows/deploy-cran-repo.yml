@@ -16,7 +16,10 @@ jobs:
       # To download GitHub Packages within action
       repository-projects: read
   deploy:
-    - name: Invoke workflow to build page with latest release
-      uses: benc-uk/workflow-dispatch@v1
-      with:
-        workflow: static.yml
+    runs-on: ubuntu-latest
+    needs:   release-file-system-image
+    steps:
+     - name: Invoke workflow to build page with latest release
+       uses: benc-uk/workflow-dispatch@v1
+       with:
+         workflow: static.yml
