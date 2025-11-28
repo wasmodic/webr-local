@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>webR Bioinformatics Demo</title>
+
+  <!-- Load webR (current stable release) -->
+  <script src="https://webr.r-wasm.org/latest/webr.mjs" type="module"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: monospace;
+    }
+    button {
+      margin-top: 0.75rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 0.75rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .status {
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>webR Bioinformatics Demo</h1>
+  <p>
+    This page runs R entirely in your browser using webR. It computes GC content
+    and the reverse complement of a DNA sequence.
+  </p>
+
+  <label for="seq"><strong>DNA sequence (supports FASTA):</strong></label>
+  <textarea id="seq" rows="6">
+>Example sequence
+ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG
+  </textarea>
+
+  <div class="status" id="status">Loading webR...</div>
+  <button id="run" disabled>Analyze sequence</button>
+
+  <h2>Results</h2>
+  <pre id="output">(waiting)</pre>
+
+  <!-- Main webR logic -->
+  <script type="module">
+    import { WebR } from "https://webr.r-wasm.org/latest/webr.mjs";
+
+    const statusEl = document.getElementById("status");
+    const outputEl = document.getElementById("output");
+    const runBtn = document.getElementById("run");
+
+    const webR = new WebR();
+
+    async function init() {
+      statusEl.textContent = "Starting webR...";
+      await webR.init();
+      
+      statusEl.textContent = "Installing stringr package...";
+      await webR.installPackages(['stringr']);
+      
+      statusEl.textContent = "webR ready.";
+      runBtn.disabled = false;
+
+      // Preload R functions once
+      await webR.evalR(`
+clean_seq <- function(x) {
+  lines <- unlist(strsplit(x, "\\n"))
+  seq_lines <- lines[!grepl("^>", lines)]
+  seq <- paste(seq_lines, collapse = "")
+  seq <- toupper(gsub("[^ACGT]", "", seq))
+  seq
+}
+
+gc_content <- function(seq) {
+  g <- stringr::str_count(seq, "G")
+  c_ <- stringr::str_count(seq, "C")
+  gc <- g + c_
+  pct <- if (nchar(seq) > 0) (gc / nchar(seq)) * 100 else 0
+  list(gc = gc, pct = pct, len = nchar(seq))
+}
+
+rev_comp <- function(seq) {
+  map <- c(A="T", C="G", G="C", T="A")
+  paste0(rev(map[strsplit(seq, "")[[1]]]), collapse = "")
+}
+      `, { captureStreams: false });
+    }
+
+    init();
+
+    runBtn.addEventListener("click", async () => {
+      runBtn.disabled = true;
+      statusEl.textContent = "Running...";
+
+      const seq = document.getElementById("seq").value;
+
+      // Move input text into R
+      await webR.objs.globalEnv.bind("rawseq", seq);
+
+      // Perform analysis in R
+      const result = await webR.evalR(`
+library(stringr)
+
+seq_clean <- clean_seq(rawseq)
+gc <- gc_content(seq_clean)
+revseq <- rev_comp(seq_clean)
+
+paste(
+  sprintf("Cleaned length: %d", gc$len),
+  sprintf("GC bases: %d", gc$gc),
+  sprintf("GC content: %.2f%%", gc$pct),
+  "",
+  "Reverse complement:",
+  revseq,
+  sep = "\\n"
+)
+`, { captureStreams: true });
+
+      const text = await result.toJs();
+      outputEl.textContent = text.values[0];
+      statusEl.textContent = "Done.";
+      runBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>
