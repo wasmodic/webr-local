@@ -77,7 +77,7 @@ ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG
       await webR.installPackages(['stringr']);
 
         await webR.evalR(`
-        webr::mount(mountpoint = "/wasmodicR", source = "library.data");
+        webr::mount(mountpoint = "/wasmodicR", source = "https://wasmodic.github.io/webr-local/library.data");
         .libPaths(c(.libPaths(), "/wasmodicR"));
         library(wasmodicR);
         message("WasmodicR is loaded")
