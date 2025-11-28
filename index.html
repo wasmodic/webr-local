@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>webR Bioinformatics Demo</title>
+  <title>webR Bioinformatics Demo with Local Package</title>
 
   <!-- Load webR (current stable release) -->
   <script src="https://webr.r-wasm.org/latest/webr.mjs" type="module"></script>
@@ -70,10 +70,21 @@ ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG
     async function init() {
       statusEl.textContent = "Starting webR...";
       await webR.init();
-      
+
+
+
       statusEl.textContent = "Installing stringr package...";
       await webR.installPackages(['stringr']);
-      
+
+        await webR.evalR(`
+        webr::mount(mountpoint = "/wasmodicR", source = "library.data");
+        .libPaths(c(.libPaths(), "/wasmodicR"));
+        library(wasmodicR);
+        message("WasmodicR is loaded")
+    `);
+
+
+
       statusEl.textContent = "webR ready.";
       runBtn.disabled = false;
 
@@ -115,20 +126,9 @@ rev_comp <- function(seq) {
 
       // Perform analysis in R
       const result = await webR.evalR(`
-library(stringr)
+library(wasmodicR)
 
-seq_clean <- clean_seq(rawseq)
-gc <- gc_content(seq_clean)
-revseq <- rev_comp(seq_clean)
-
-paste(
-  sprintf("Cleaned length: %d", gc$len),
-  sprintf("GC bases: %d", gc$gc),
-  sprintf("GC content: %.2f%%", gc$pct),
-  "",
-  "Reverse complement:",
-  revseq,
-  sep = "\\n"
+wasmodicR::wasmodic()
 )
 `, { captureStreams: true });
 
