@@ -1,4 +1,8 @@
-# webR
+# webR-local 
+
+An extension of the [https://github.com/wasmodic/webr](https://github.com/wasmodic/webr) repository. 
+
+The primary difference is that R functions are sourced from a package that is compiled to WAMm and hosted on a GitHub pages site.  
 
 ## How does the app work?
 Look at the `<script/>` html section. R is started in a few key steps:
@@ -15,19 +19,15 @@ const runBtn = document.getElementById("run");
 const webR = new WebR();
 ```
 
-2. Default R code and data is created in in a `webR.evalR()` command. Note that `await` is used since this is an asynchronous operation.
+2. Required R code is in a standard R package located at root of this repository and data is created in in a `webR.evalR()` command. Note that `await` is used since this is an asynchronous operation.
 
 ```javascript
-await webR.evalR(`
-    clean_seq <- function(x) {
-        lines <- unlist(strsplit(x, "\\n"))
-        seq_lines <- lines[!grepl("^>", lines)]
-        seq <- paste(seq_lines, collapse = "")
-        seq <- toupper(gsub("[^ACGT]", "", seq))
-        seq
-    } 
-    ... `, { captureStreams: false });
-}
+    await webR.evalR(`
+        webr::mount(mountpoint = "/wasmodicR", source = "https://wasmodic.github.io/webr-local/library.data");
+        .libPaths(c(.libPaths(), "/wasmodicR"));
+        library(wasmodicR);
+        message("WasmodicR is loaded")
+    `);
 ```
 
 ## How do data enter WASM here?
