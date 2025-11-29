@@ -42,19 +42,34 @@
   <h1>webR Bioinformatics Demo</h1>
   <p>
     This page runs R entirely in your browser using webR. It computes GC content
-    and the reverse complement of a DNA sequence. These functiosn come from a local R package (wasmodicR)
-    that is hosted on this repo's GitHub pages, and could be called from any WebR instance.
-
-    The output should be the same as <a href="https://github.com/wasmodic/webr/">https://github.com/wasmodic/webr/</a>
+    and the reverse complement of a DNA sequence.
     </p>
 
-    <pre>
-      library(webr)
-      webr::mount(mountpoint = "/wasmodicR", source = "https://wasmodic.github.io/webr-local/library.data");
-      .libPaths(c(.libPaths(), "/wasmodicR"));
-      library(wasmodicR)
-      wasmodicR::wasmodic()
-      </pre>
+    <p>
+    These functiosn come from a local R package (wasmodicR)
+    that is hosted on this repo's GitHub pages, and could be called from any WebR instance.
+
+    </p>
+
+    <p>
+
+    The output should be the same as <a href="https://wasmodic.github.io/webr/
+">https://wasmodic.github.io/webr/</a> as the only differnece is that the functions are from a R package rather than inline.
+    </p>
+
+<pre>
+library(webr)
+webr::mount(mountpoint = "/wasmodicR", source = "https://wasmodic.github.io/webr-local/library.data");
+libPaths(c(.libPaths(), "/wasmodicR"));
+library(wasmodicR)
+
+#exmaples
+wasmodicR::wasmodic()
+seq_clean <- wasmodicR::clean_seq(rawseq)
+gc <- wasmodicR::gc_content(seq_clean)
+revseq <- wasmodicR::rev_comp(seq_clean)
+
+</pre>
 
   <label for="seq"><strong>DNA sequence (supports FASTA):</strong></label>
   <textarea id="seq" rows="6">
