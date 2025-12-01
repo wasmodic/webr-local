@@ -2,7 +2,7 @@
 
 An extension of the [https://github.com/wasmodic/webr](https://github.com/wasmodic/webr) repository. 
 
-The primary difference is that R functions are sourced from a package that is compiled to WAMm and hosted on a GitHub pages site.  
+The primary difference is that R functions are sourced from a package that is compiled to WASM and hosted on a GitHub pages site.  
 
 ## How does the app work?
 Look at the `<script/>` html section. R is started in a few key steps:
